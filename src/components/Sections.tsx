@@ -27,7 +27,7 @@ function AboutWord({ word, progress, index, total }: { word: string; progress: M
   const opacity = useTransform(progress, [index / total, (index + 1) / total], [0.25, 1]);
   const y = useTransform(progress, [index / total, (index + 1) / total], [12, 0]);
   return (
-    <motion.span style={{ opacity, y }} className="inline-block">
+    <motion.span style={{ opacity, y }} className="mr-[0.25em] inline-block">
       {word}
       {" "}
     </motion.span>
@@ -508,7 +508,7 @@ export function Skills() {
   const cardsByGroup = groups.map((group) =>
     group.skills.map((skill) => {
       counter += 1;
-      const n = counter < 10 ? String(counter).padStart(2, "0") : `0${counter}`;
+      const n = String(counter).padStart(2, "0");
       return { skill, n };
     }),
   );
