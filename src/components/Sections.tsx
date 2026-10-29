@@ -235,21 +235,46 @@ export function Skills() {
       <div className="mx-auto mt-10 w-[min(92vw,1110px)] space-y-16 px-5">
         {portfolio.skillGroups.map((group) => (
           <div key={group.domain} className="relative overflow-hidden">
-            <p
-              className="whitespace-nowrap font-display text-[clamp(3rem,10vw,8rem)] font-bold uppercase tracking-[clamp(-0.1rem,-1vw,-0.5rem)] text-transparent opacity-90 [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(196,107,31,0.12)] blur-[100px]"
+              aria-hidden="true"
+            />
+            <motion.p
+              initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
+              whileInView={{ opacity: 0.9, scale: 1, filter: "blur(0px)" }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="relative whitespace-nowrap font-display text-[clamp(3rem,10vw,8rem)] font-bold uppercase tracking-[clamp(-0.1rem,-1vw,-0.5rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
               aria-hidden="true"
             >
               {group.domain}
-            </p>
-            <div className="relative mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+            </motion.p>
+            <div className="relative mt-6 grid grid-cols-1 gap-6 md:grid-cols-2" style={{ perspective: 1200 }}>
               {group.skills.map((skill, skillIndex) => {
                 counter += 1;
                 const n = counter < 10 ? String(counter).padStart(2, "0") : `0${counter}`;
                 return (
                   <motion.article
                     key={skill}
-                    {...fadeUp}
-                    transition={{ ...fadeUp.transition, delay: skillIndex * 0.08 }}
+                    initial={{
+                      opacity: 0,
+                      scale: 0.7,
+                      y: 80,
+                      rotateX: 25,
+                      rotateY: skillIndex % 2 === 0 ? -12 : 12,
+                      filter: "blur(10px)",
+                    }}
+                    whileInView={{
+                      opacity: 1,
+                      scale: 1,
+                      y: 0,
+                      rotateX: 0,
+                      rotateY: 0,
+                      filter: "blur(0px)",
+                    }}
+                    viewport={{ once: true, margin: "-80px" }}
+                    transition={{ duration: 0.7, delay: skillIndex * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ transformStyle: "preserve-3d" }}
                     className="relative flex h-full flex-col justify-between bg-surface p-6 text-center shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-all duration-300 hover:z-10 hover:border-accent hover:bg-surfaceHover hover:shadow-[0_0_30px_#c46b1f38] border border-line"
                   >
                     <div className="flex items-center justify-center gap-4 border-b border-line pb-3">
