@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState, type ReactNode } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { portfolio } from "@/data/portfolio";
 
@@ -20,7 +20,144 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
   );
 }
 
+
+// Scroll-driven depth: each element binds its own scale / opacity /
+// depth to how far it has scrolled into the viewport, so it moves
+// forward out of the background as you scroll, instead of playing
+// a one-time entrance animation.
+function DepthWord({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 0.9]);
+  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
+  return (
+    <motion.p
+      ref={ref}
+      style={{ scale, opacity, y }}
+      className="sticky top-20 z-0 whitespace-nowrap font-display text-[clamp(1.75rem,6vw,4.5rem)] font-bold uppercase tracking-[clamp(-0.05rem,-0.5vw,-0.25rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
+      aria-hidden="true"
+    >
+      {children}
+    </motion.p>
+  );
+}
+
+function SkillDepthCard({ skill, domain, n, fan }: { skill: string; domain: string; n: string; fan: number }) {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [60, 0]);
+  const rotateX = useTransform(scrollYProgress, [0, 1], [25, 0]);
+  const rotateY = useTransform(scrollYProgress, [0, 1], [fan, 0]);
+  return (
+    <motion.article
+      ref={ref}
+      style={{ scale, opacity, y, rotateX, rotateY, transformPerspective: 1200, transformStyle: "preserve-3d" }}
+      className="relative flex h-full flex-col justify-between bg-surface p-6 text-center shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-all duration-300 hover:z-10 hover:border-accent hover:bg-surfaceHover hover:shadow-[0_0_30px_#c46b1f38] border border-line"
+    >
+      <div className="flex items-center justify-center gap-4 border-b border-line pb-3">
+        <span className="font-mono text-xs text-accent">{n}</span>
+        <span className="h-2 w-2 bg-accent" aria-hidden="true" />
+      </div>
+      <h4 className="mt-4 font-display text-[clamp(1.1rem,2vw,1.5rem)] font-bold uppercase leading-[0.95] text-white">
+        {skill}
+      </h4>
+      <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-white/45">{domain}</p>
+      <p className="mt-auto pt-4 font-mono text-[0.65rem] text-white/40">Skill {n} / 22</p>
+      <span className="absolute bottom-6 right-6 text-[2rem] font-black text-white opacity-10" aria-hidden="true">
+        {n}
+      </span>
+    </motion.article>
+  );
+}
+
+type ProjectItem = {
+  title: string;
+  description: string;
+  stack: string[];
+  github: string;
+  live: string;
+  badge: string;
+};
+
+function ProjectDepthCard({ project }: { project: ProjectItem }) {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const scale = useTransform(scrollYProgress, [0, 1], [0.88, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [50, 0]);
+  const rotateX = useTransform(scrollYProgress, [0, 1], [20, 0]);
+  return (
+    <motion.article
+      ref={ref}
+      style={{ scale, opacity, y, rotateX, transformPerspective: 1200, transformStyle: "preserve-3d" }}
+      className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[#0a0a0a59] shadow-[0_24px_70px_#0000008c] backdrop-blur-[10px] transition-all duration-300 hover:-translate-y-2 hover:border-[#c46b1f59] hover:shadow-[0_26px_90px_#000000b3,0_0_0_1px_#c46b1f2e,0_0_38px_#c46b1f2e]"
+    >
+      <div className="relative h-[clamp(200px,22vw,260px)] w-full overflow-hidden max-[480px]:h-[190px]" aria-hidden="true">
+        <div className="flex h-full w-full items-center justify-center bg-surface transition-all duration-300 group-hover:scale-[1.06]">
+          <span className="font-mono text-2xl font-bold text-white/30">
+            {project.title
+              .split(" ")
+              .map((w) => w[0])
+              .join("")
+              .slice(0, 3)}
+          </span>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/55 to-black/85 opacity-100 transition-opacity duration-300 group-hover:opacity-85" />
+      </div>
+      <div className="flex flex-1 flex-col p-[clamp(16px,2vw,22px)]">
+        <h3 className="text-[clamp(1rem,1.2vw,1.25rem)] font-bold tracking-[-0.01em]">{project.title}</h3>
+        {project.badge ? (
+          <span className="mt-3 inline-flex w-fit rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+            {project.badge}
+          </span>
+        ) : null}
+        <p className="mt-3 flex-1 text-[clamp(0.85rem,1vw,0.92rem)] leading-[1.65] text-white/50">{project.description}</p>
+        {project.stack.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {project.stack.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.06)] px-2.5 py-1.5 text-xs text-white/65 transition-all duration-200 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white/80"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <div className="mt-auto border-t border-[rgba(255,255,255,0.08)] pt-3.5">
+          <div className="flex flex-wrap gap-[18px]">
+            {isRealLink(project.live) ? (
+              <a
+                href={project.live}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[0.9rem] font-semibold text-[#78d2fff2] transition-all duration-200 hover:text-[#c46b1ff2] hover:underline group-hover:translate-x-0.5"
+              >
+                ↗ Live Demo
+              </a>
+            ) : null}
+            {isRealLink(project.github) ? (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[0.9rem] font-semibold text-[#78d2fff2] transition-all duration-200 hover:text-[#c46b1ff2] hover:underline group-hover:translate-x-0.5"
+              >
+                Source Code
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
 function SectionHeading({
+
   index,
   title,
   subtitle,
@@ -234,62 +371,18 @@ export function Skills() {
       </div>
       <div className="mx-auto mt-10 w-[min(92vw,1110px)] space-y-16 px-5">
         {portfolio.skillGroups.map((group) => (
-          <div key={group.domain} className="relative overflow-hidden">
+          <div key={group.domain} className="relative overflow-x-clip">
             <div
               className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(196,107,31,0.12)] blur-[100px]"
               aria-hidden="true"
             />
-            <motion.p
-              initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
-              whileInView={{ opacity: 0.9, scale: 1, filter: "blur(0px)" }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="relative whitespace-nowrap font-display text-[clamp(1.75rem,6vw,4.5rem)] font-bold uppercase tracking-[clamp(-0.05rem,-0.5vw,-0.25rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
-              aria-hidden="true"
-            >
-              {group.domain}
-            </motion.p>
+            <DepthWord>{group.domain}</DepthWord>
             <div className="relative mt-6 grid grid-cols-1 gap-6 md:grid-cols-2" style={{ perspective: 1200 }}>
               {group.skills.map((skill, skillIndex) => {
                 counter += 1;
                 const n = counter < 10 ? String(counter).padStart(2, "0") : `0${counter}`;
                 return (
-                  <motion.article
-                    key={skill}
-                    initial={{
-                      opacity: 0,
-                      scale: 0.7,
-                      y: 80,
-                      rotateX: 25,
-                      rotateY: skillIndex % 2 === 0 ? -12 : 12,
-                      filter: "blur(10px)",
-                    }}
-                    whileInView={{
-                      opacity: 1,
-                      scale: 1,
-                      y: 0,
-                      rotateX: 0,
-                      rotateY: 0,
-                      filter: "blur(0px)",
-                    }}
-                    viewport={{ once: true, margin: "-80px" }}
-                    transition={{ duration: 0.7, delay: skillIndex * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ transformStyle: "preserve-3d" }}
-                    className="relative flex h-full flex-col justify-between bg-surface p-6 text-center shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-all duration-300 hover:z-10 hover:border-accent hover:bg-surfaceHover hover:shadow-[0_0_30px_#c46b1f38] border border-line"
-                  >
-                    <div className="flex items-center justify-center gap-4 border-b border-line pb-3">
-                      <span className="font-mono text-xs text-accent">{n}</span>
-                      <span className="h-2 w-2 bg-accent" aria-hidden="true" />
-                    </div>
-                    <h4 className="mt-4 font-display text-[clamp(1.1rem,2vw,1.5rem)] font-bold uppercase leading-[0.95] text-white">
-                      {skill}
-                    </h4>
-                    <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-white/45">{group.domain}</p>
-                    <p className="mt-auto pt-4 font-mono text-[0.65rem] text-white/40">Skill {n} / 22</p>
-                    <span className="absolute bottom-6 right-6 text-[2rem] font-black text-white opacity-10" aria-hidden="true">
-                      {n}
-                    </span>
-                  </motion.article>
+                  <SkillDepthCard key={skill} skill={skill} domain={group.domain} n={n} fan={skillIndex % 2 === 0 ? -12 : 12} />
                 );
               })}
             </div>
@@ -312,69 +405,9 @@ export function Projects() {
           kickerClassName="section-kicker-projects"
         />
       </div>
-      <div className="mx-auto mt-[clamp(30px,5vw,42px)] grid w-[min(1200px,92%)] grid-cols-2 gap-[clamp(20px,3vw,28px)] max-[900px]:w-[94%] max-[900px]:grid-cols-1">
-        {portfolio.projects.map((project, i) => (
-          <Reveal key={project.title} delay={0.08 * i}>
-            <article className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[#0a0a0a59] shadow-[0_24px_70px_#0000008c] backdrop-blur-[10px] transition-all duration-300 hover:-translate-y-2 hover:border-[#c46b1f59] hover:shadow-[0_26px_90px_#000000b3,0_0_0_1px_#c46b1f2e,0_0_38px_#c46b1f2e]">
-              <div className="relative h-[clamp(200px,22vw,260px)] w-full overflow-hidden max-[480px]:h-[190px]" aria-hidden="true">
-                <div className="flex h-full w-full items-center justify-center bg-surface transition-all duration-300 group-hover:scale-[1.06]">
-                  <span className="font-mono text-2xl font-bold text-white/30">
-                    {project.title
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 3)}
-                  </span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/55 to-black/85 opacity-100 transition-opacity duration-300 group-hover:opacity-85" />
-              </div>
-              <div className="flex flex-1 flex-col p-[clamp(16px,2vw,22px)]">
-                <h3 className="text-[clamp(1rem,1.2vw,1.25rem)] font-bold tracking-[-0.01em]">{project.title}</h3>
-                {project.badge ? (
-                  <span className="mt-3 inline-flex w-fit rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
-                    {project.badge}
-                  </span>
-                ) : null}
-                <p className="mt-3 flex-1 text-[clamp(0.85rem,1vw,0.92rem)] leading-[1.65] text-white/50">{project.description}</p>
-                {project.stack.length > 0 ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {project.stack.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.06)] px-2.5 py-1.5 text-xs text-white/65 transition-all duration-200 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white/80"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                <div className="mt-auto border-t border-[rgba(255,255,255,0.08)] pt-3.5">
-                  <div className="flex flex-wrap gap-[18px]">
-                    {isRealLink(project.live) ? (
-                      <a
-                        href={project.live}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[0.9rem] font-semibold text-[#78d2fff2] transition-all duration-200 hover:text-[#c46b1ff2] hover:underline group-hover:translate-x-0.5"
-                      >
-                        ↗ Live Demo
-                      </a>
-                    ) : null}
-                    {isRealLink(project.github) ? (
-                      <a
-                        href={project.github}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[0.9rem] font-semibold text-[#78d2fff2] transition-all duration-200 hover:text-[#c46b1ff2] hover:underline group-hover:translate-x-0.5"
-                      >
-                        Source Code
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </article>
-          </Reveal>
+      <div className="mx-auto mt-[clamp(30px,5vw,42px)] grid w-[min(1200px,92%)] grid-cols-2 gap-[clamp(20px,3vw,28px)] max-[900px]:w-[94%] max-[900px]:grid-cols-1" style={{ perspective: 1200 }}>
+        {portfolio.projects.map((project) => (
+          <ProjectDepthCard key={project.title} project={project} />
         ))}
       </div>
     </section>
