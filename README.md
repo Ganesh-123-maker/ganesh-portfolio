@@ -1,94 +1,87 @@
 # Ganesh — Portfolio
 
-A portfolio built with Next.js + TypeScript + Tailwind CSS + Framer Motion.
-Its design and section structure follow the reference portfolio's order,
-with one section removed at the owner's request:
-Hero → About (01) → Journey (02) → Skills (03) → Projects (04) →
-Contact (05) → Footer.
-There is no section for credentials here, and no nav link for one —
-Projects is followed directly by Contact, with no gap left behind.
-Design: black background throughout, burnt-orange accent, serif hero
-name, floating pill navbar, central orange Journey timeline, dark
-charcoal project cards, and a two-column contact section with a form card.
-All personal content is Ganesh's only. No content from the reference site
-remains in the title, meta tags, alt text, images, or footer.
+A personal portfolio for Ganesh, a B.Tech Computer Science student at IIIT Guwahati (2023–2027), focused on full-stack and AI-integrated applications and agentic AI, seeking SDE / AI Engineer internships.
 
-Cinematic feeling: the page opens with a fade from black, the hero name
-reveals with a slow blur-to-sharp title animation, the starfield
-twinkles and the warm glow pulses slowly, the hero scales on scroll,
-and every section reveals with a slow (0.9s) blur-to-sharp fade using a
-cinematic ease. A faint film-grain overlay and a soft vignette run over
-the whole page. These are generic cinematic techniques, not copied
-assets or text.
+## Live URL
 
-Design notes and limits:
-- The reference skills section is a scroll-driven 3D card deck. This
-  version keeps the same dark cards, domain labels and numbering, in a
-  grid, so all 22 skills stay visible on desktop and mobile.
-- The browser tool used for the reference study could not resize to
-  375px / 768px / 1024px, could not save screenshots, and could not
-  read computed styles or dump the rendered DOM, so the 4-width
-  screenshot comparison and the computed-style extraction in the brief
-  could not be completed with the tools available. The build is based
-  on the detailed desktop study of the reference, and mobile layout
-  here is a responsive interpretation: stacked sections, a menu button
-  in the pill navbar, and a left-aligned timeline on small screens.
-- Colours and font families in the study were visual estimates, not
-  sampled hex values, so treat the orange/black/serif combination as a
-  close match, not a sampled-pixel match.
-- The contact form validates and shows a notice, but does not send
-  anything yet: no email or form endpoint has been supplied.
+https://ganesh-portfolio-indol.vercel.app/
 
-## Edit your content
+## Screenshots
 
-Edit **only** `src/data/portfolio.ts`. That file holds:
+See the live site above for the current design: a dark hero with a gradient name and ambient violet/cyan glows, an About & Education section with a portrait and an education card, a Tech Stack grid, a Projects grid, and a Contact section.
 
-- name, role line, about text, photo path and alt text
-- links (GitHub is live; LinkedIn and email are marked `[ADD]`)
-- education and experience
-- skills, grouped by domain, numbered continuously in the UI
-- projects, contact text, footer
+## Tech Stack
 
-Replace every `[ADD]` value with a real value before publishing.
-AI Interview Coach already has a live demo link:
-https://interview-coach-blue.vercel.app/
+- Next.js 14 (App Router) with React 18 and TypeScript
+- Tailwind CSS 3
+- Framer Motion for scroll and reveal animations
+- Space Grotesk for headings, Inter for body copy, JetBrains Mono for indices and badges
+- Vercel for hosting and deployment
 
-The resume link points to `public/resume.pdf`, which is the resume PDF
-uploaded in the portfolio chat. Replace that file with a new resume
-whenever you update it — the link does not change.
+See `design-spec.md` for the full design system: typography, colours, layout, breakpoints, and animations.
 
-Photo: `public/photo.jpg` is the photo uploaded in the portfolio chat,
-used in the About section only — the hero stays typographic, as in
-the reference.
+## Features
 
-## Run locally
+- Floating pill navigation with a mobile menu and a resume download
+- Hero with a gradient name, ambient violet/cyan glows, and a highlights card
+- About, Journey, Tech Stack, Projects, and Contact sections in a single scrolling page
+- Project cards with stack tags, live demo links where available, and source code links where available
+- Contact form with success and error states and honeypot spam protection, wired to Formspree when configured, with a fallback contact panel when it is not
+- Responsive layout for mobile, tablet, and desktop
+- SEO and Open Graph tags, favicon, and a downloadable resume PDF
+
+## Local Setup
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:3000.
 
-## Build
+To build for production:
 
 ```bash
 npm run build
 npm start
 ```
 
-## Deploy on Vercel
+## Project Structure
 
-1. Push this folder to a GitHub repository.
-2. In Vercel, choose **Add New → Project** and import that repository.
-3. Leave the framework preset as **Next.js** and the defaults as they are.
-4. Click **Deploy**. No environment variables are required.
-5. Later pushes to `main` redeploy automatically to the same production URL.
+```
+app/
+  layout.tsx      # Page metadata, fonts, and Open Graph tags
+  page.tsx        # Page composition: Hero, About, Skills, Projects, Contact
+  globals.css     # Base styles and design-system utilities
+src/
+  components/
+    Sections.tsx  # Navbar, Hero, About, Skills, Projects, Contact
+  data/
+    portfolio.ts  # All personal content in one editable file
+public/
+  photo.jpg       # About portrait
+  resume.pdf      # Downloadable resume
+  favicon.svg     # "G" favicon
+design-spec.md    # Design system: typography, colours, layout, animations
+```
 
-## Notes on what was not invented
+## How to Edit src/data/portfolio.ts
 
-- Skills are exactly the latest list supplied for this portfolio (22 skills).
-- LinkedIn, email, the Mental Health project's GitHub link, and
-  experience details are marked `[ADD]` where no value was supplied.
-- Experience shows only role, company, location and dates from the
-  uploaded resume. No metrics, jobs, or achievements have been invented.
+Edit only `src/data/portfolio.ts` to update personal content. It holds:
+
+- Name, role line, tagline, and About text
+- Photo path and alt text
+- Links: GitHub, LinkedIn, email, and resume path
+- Contact form endpoint (see below)
+- Education and experience
+- Skill groups, numbered continuously in the UI
+- Projects: title, description, stack, GitHub link, live demo link, and badge
+- Contact heading and text
+- Footer text
+
+Rules for that file:
+
+- An empty string means "not supplied yet" and that button, icon, or line is hidden on the live site. Never put placeholder text there.
+- A project with a `badge` of "Ongoing Research" shows that badge and no Source Code button.
+- To enable the contact form, create a free form at Formspree, copy its endpoint (it looks like `https://formspree.io/f/xxxxxxxx`), and either set it as `formEndpoint` in `src/data/portfolio.ts` or set it as the `NEXT_PUBLIC_FORMSPREE_ENDPOINT` environment variable in Vercel, then redeploy. Until an endpoint is set, the site shows a fallback contact panel instead of a form.
+- After editing, run `npm run build`, commit, and push to `main` — Vercel redeploys automatically to the live URL.

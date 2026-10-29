@@ -1,8 +1,9 @@
 // ============================================================
 // SINGLE EDITABLE DATA FILE — edit only this file to update the
 // portfolio. No other file contains personal content.
-// Placeholders are written exactly as [ADD] and must be replaced
-// with real values. Nothing here is invented.
+// Empty strings mean 'not supplied yet' and are hidden on the
+// live site — never rendered as placeholder text. Nothing here
+// is invented.
 // ============================================================
 
 export const portfolio = {
@@ -24,11 +25,17 @@ export const portfolio = {
   photo: "/photo.jpg",
   photoAlt: "Portrait of Ganesh",
 
+  // Contact form endpoint: leave empty until a Formspree form is
+  // created (see the Contact section code). When empty, the site
+  // shows a fallback instead of a form that does nothing.
+  formEndpoint: "",
   links: {
     github: "https://github.com/Ganesh-123-maker",
-    // Replace the [ADD] values below — do not leave them as links.
-    linkedin: "[ADD]",
-    email: "[ADD]",
+    // Empty string = hidden on the live site. Fill with a real
+    // LinkedIn URL / email address when supplied; never render a
+    // placeholder or a dead link.
+    linkedin: "",
+    email: "",
     // Resume: the PDF you uploaded in this chat is copied to
     // public/resume.pdf, so this link already works.
     resume: "/resume.pdf",
@@ -37,7 +44,6 @@ export const portfolio = {
   // Nav order and labels follow the reference navbar.
   nav: [
     { label: "About Me", href: "#about" },
-    { label: "Journey", href: "#journey" },
     { label: "Skills", href: "#skills" },
     { label: "Projects", href: "#projects" },
     { label: "Contact", href: "#contact" },
@@ -52,7 +58,7 @@ export const portfolio = {
   },
 
   // Experience: role, company and dates are from the resume you
-  // uploaded. Details are left as [ADD] on purpose — no metrics,
+  // uploaded. Details are left empty on purpose — no metrics,
   // jobs or achievements have been invented for this section.
   experience: [
     {
@@ -60,7 +66,7 @@ export const portfolio = {
       company: "Solvrex Pvt. Limited",
       location: "Remote",
       period: "Sep 2026 – Present",
-      detail: "[ADD details]",
+      detail: "",
     },
   ],
 
@@ -97,6 +103,7 @@ export const portfolio = {
       stack: ["Next.js", "TypeScript", "FastAPI", "PostgreSQL", "Docker"],
       github: "https://github.com/Ganesh-123-maker/RAG",
       live: "",
+      badge: "",
     },
     {
       title: "AI Interview Coach",
@@ -106,6 +113,7 @@ export const portfolio = {
       // Live demo supplied by you earlier in this chat, verified to
       // load as AI Interview Coach before it was added here.
       live: "https://interview-coach-blue.vercel.app/",
+      badge: "",
     },
     {
       title: "LuxeStay",
@@ -113,20 +121,22 @@ export const portfolio = {
       stack: ["Node.js", "Express", "MongoDB"],
       github: "https://github.com/Ganesh-123-maker/LuxeStay",
       live: "",
+      badge: "",
     },
     {
       title: "Agentic AI on Mental Health",
       description:
         "Multi-agent AI system for mental health support (ongoing research project at IIIT Guwahati).",
       stack: [],
-      github: "[ADD]",
+      github: "",
       live: "",
+      badge: "Ongoing Research",
     },
   ],
 
   contact: {
     heading: "Let's build something real.",
-    text: "If you're hiring for an SDE / AI Engineer internship, or want to talk about full-stack and agentic AI work, my GitHub is the best place to start. LinkedIn and email are marked [ADD] until you add them above.",
+    text: "If you're hiring for an SDE / AI Engineer internship, or want to talk about full-stack and agentic AI work, my GitHub is the best place to start for now.",
   },
 
   footer: "© 2026 Ganesh. Built with Next.js, TypeScript, Tailwind CSS and Framer Motion.",

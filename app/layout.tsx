@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
-const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif", weight: ["700", "800", "900"] });
+const sans = Inter({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600"] });
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", weight: ["500", "600", "700"] });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weight: ["400", "500"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ganesh-portfolio-indol.vercel.app"),
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable}`}>
-      <body className="font-sans bg-page text-ink">{children}</body>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable}`}>
+      <body className="bg-[#0a0a0f] font-sans text-[#f8fafc]">{children}</body>
     </html>
   );
 }
