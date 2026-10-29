@@ -7,6 +7,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif", weight: ["700", "800", "900"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://ganesh-portfolio-indol.vercel.app"),
   title: "Ganesh — Portfolio",
   description:
     "Ganesh — B.Tech Computer Science, IIIT Guwahati (2023–2027). Full-stack and AI-integrated applications, agentic AI. Seeking SDE / AI Engineer internships.",
