@@ -6,10 +6,10 @@ import Image from "next/image";
 import { portfolio } from "@/data/portfolio";
 
 const fadeUp = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
+  initial: { opacity: 0, y: 32, filter: "blur(12px)" },
+  whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
   viewport: { once: true, margin: "-80px" },
-  transition: { duration: 0.55, ease: "easeOut" },
+  transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] },
 } as const;
 
 function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
@@ -27,7 +27,7 @@ function JourneyReveal({ children, className }: { children: ReactNode; className
       initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -111,16 +111,18 @@ export function Navbar() {
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
   return (
     <section id="home" ref={ref} className="relative flex min-h-screen items-center justify-center overflow-hidden">
       <div className="starfield absolute inset-0 opacity-60" aria-hidden="true" />
-      <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/20 blur-[120px]" aria-hidden="true" />
+      <div className="starfield animate-twinkle absolute inset-0 opacity-40" style={{ backgroundSize: "44px 44px" }} aria-hidden="true" />
+      <div className="animate-glow absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/20 blur-[120px]" aria-hidden="true" />
+      <motion.div initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 1.4, ease: "easeOut", delay: 0.1 }} className="pointer-events-none absolute inset-0 z-20 bg-black" aria-hidden="true" />
       <motion.div style={{ scale }} className="relative px-5 text-center">
         <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 40, filter: "blur(16px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
           className="font-serif text-6xl font-black uppercase leading-none tracking-tight text-cream sm:text-8xl"
         >
           {portfolio.name}
@@ -248,7 +250,7 @@ export function Skills() {
                     <motion.article
                       key={skill}
                       {...fadeUp}
-                      className="relative rounded-xl border border-line bg-card p-5 shadow-sm transition-colors hover:border-accent"
+                      className="relative rounded-xl border border-line bg-card p-5 shadow-sm transition-all hover:border-accent hover:shadow-[0_0_50px_rgba(249,115,22,0.12)]"
                     >
                       <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-card2 text-sm font-bold text-accent">
                         {skill.slice(0, 2).toUpperCase()}
@@ -281,8 +283,8 @@ export function Projects() {
         <div className="mt-14 grid gap-6 md:grid-cols-2 md:gap-8">
           {portfolio.projects.map((project, i) => (
             <Reveal key={project.title} delay={0.05 * i}>
-              <article className="flex h-full flex-col overflow-hidden rounded-[20px] border border-line bg-card">
-                <div className="flex h-40 items-center justify-center bg-gradient-to-br from-card2 to-black" aria-hidden="true">
+              <article className="group flex h-full flex-col overflow-hidden rounded-[20px] border border-line bg-card transition-shadow hover:shadow-[0_0_50px_rgba(249,115,22,0.12)]">
+                <div className="flex h-40 items-center justify-center overflow-hidden bg-gradient-to-br from-card2 to-black transition-transform duration-700 group-hover:scale-105" aria-hidden="true">
                   <span className="font-mono text-2xl font-bold text-white/30">
                     {project.title.split(" ").map((w) => w[0]).join("").slice(0, 3)}
                   </span>
@@ -325,59 +327,13 @@ export function Projects() {
   );
 }
 
-export function Certifications() {
-  const [active, setActive] = useState(0);
-  const current = portfolio.certifications[active];
-  return (
-    <section id="certifications" className="scroll-mt-28 py-24 sm:py-32">
-      <div className="mx-auto max-w-shell px-5 sm:px-8">
-        <SectionHeading
-          eyebrow="05. Certifications"
-          title="Certifications & Honors"
-          subtitle="Placeholders only — add your real items in src/data/portfolio.ts."
-        />
-        <div className="mt-14 grid gap-10 lg:grid-cols-2">
-          <div className="space-y-2">
-            {portfolio.certifications.map((cert, i) => (
-              <button
-                key={cert.title + i}
-                type="button"
-                onClick={() => setActive(i)}
-                className={`w-full border-l-4 py-4 pl-5 text-left text-lg font-semibold transition-colors ${
-                  i === active ? "border-accent text-accent" : "border-transparent text-muted hover:text-white"
-                }`}
-              >
-                {cert.title}
-              </button>
-            ))}
-          </div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex min-h-[280px] flex-col items-center justify-center rounded-xl bg-white p-8 text-center text-black"
-            >
-              <p className="text-xl font-bold">{current.title}</p>
-              <p className="mt-3 text-black/60">{current.detail}</p>
-              <p className="mt-6 text-sm text-black/50">Preview placeholder — replace with your certificate in the data file.</p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export function ContactFooter() {
   const [sent, setSent] = useState(false);
   return (
     <>
       <section id="contact" className="scroll-mt-28 py-24 sm:py-32">
         <div className="mx-auto max-w-shell px-5 sm:px-8">
-          <SectionHeading eyebrow="06. Contact" title="Get in Touch" subtitle="Open to SDE / AI Engineer internship opportunities." />
+          <SectionHeading eyebrow="05. Contact" title="Get in Touch" subtitle="Open to SDE / AI Engineer internship opportunities." />
           <div className="mt-14 grid gap-12 lg:grid-cols-2">
             <Reveal>
               <div>

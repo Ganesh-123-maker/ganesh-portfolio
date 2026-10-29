@@ -34,9 +34,7 @@ export const portfolio = {
     resume: "/resume.pdf",
   },
 
-  // Nav order and labels follow the reference navbar. The reference
-  // nav has no Certifications link, so that section is reached by
-  // scrolling, not from the nav — same as the reference.
+  // Nav order and labels follow the reference navbar.
   nav: [
     { label: "About Me", href: "#about" },
     { label: "Journey", href: "#journey" },
@@ -66,9 +64,8 @@ export const portfolio = {
     },
   ],
 
-  // SKILLS — exactly your list. No skills from the reference site
-  // are included here. Numbers in the UI are assigned in order,
-  // continuing across groups (01, 02, 03 …), as in the reference.
+  // SKILLS — exactly your latest list (22 skills). Numbers in the
+  // UI are assigned in order, continuing across groups.
   skillGroups: [
     {
       domain: "Languages",
@@ -80,21 +77,15 @@ export const portfolio = {
     },
     {
       domain: "Backend",
-      skills: ["FastAPI", "Node.js", "REST APIs", "JWT auth"],
+      skills: ["FastAPI", "Node.js", "Express", "REST APIs", "JWT"],
     },
     {
       domain: "AI/ML",
-      skills: [
-        "RAG",
-        "LangGraph",
-        "LLM integration",
-        "embeddings",
-        "vector search (Qdrant)",
-      ],
+      skills: ["RAG", "LangGraph", "LLM integration", "Qdrant"],
     },
     {
       domain: "Data/DevOps",
-      skills: ["PostgreSQL", "Docker", "Git", "CI/CD"],
+      skills: ["MongoDB", "PostgreSQL", "Docker", "Git", "CI/CD"],
     },
   ],
 
@@ -102,44 +93,35 @@ export const portfolio = {
     {
       title: "Agentic RAG Knowledge Assistant",
       description:
-        "Document Q&A with chunking, embeddings, Qdrant vector search, and citations. LangGraph multi-agent layer (Planner, Retriever, Reasoning, Response), multi-turn chat, streaming, JWT auth.",
+        "Document Q&A with chunking, embeddings, Qdrant vector search, and citations. LangGraph multi-agent layer (Planner, Retriever, Reasoning, Response), streaming, JWT auth.",
       stack: ["Next.js", "TypeScript", "FastAPI", "PostgreSQL", "Docker"],
       github: "https://github.com/Ganesh-123-maker/RAG",
       live: "",
     },
     {
       title: "AI Interview Coach",
-      description:
-        "LLM-powered mock interview tool with question generation and feedback.",
+      description: "LLM-powered mock interview tool with feedback.",
       stack: [],
       github: "https://github.com/Ganesh-123-maker/InterviewCoach",
-      // Live demo supplied by you in this chat, verified to load as
-      // AI Interview Coach before it was added here.
+      // Live demo supplied by you earlier in this chat, verified to
+      // load as AI Interview Coach before it was added here.
       live: "https://interview-coach-blue.vercel.app/",
     },
     {
       title: "LuxeStay",
       description: "Full-stack rental platform.",
-      stack: ["[ADD stack + repo]"],
-      github: "[ADD]",
+      stack: ["Node.js", "Express", "MongoDB"],
+      github: "https://github.com/Ganesh-123-maker/LuxeStay",
       live: "",
     },
     {
       title: "Agentic AI on Mental Health",
       description:
-        "Ongoing research, IIIT Guwahati: adaptive strategy selection and safety supervision.",
+        "Multi-agent AI system for mental health support (ongoing research project at IIIT Guwahati).",
       stack: [],
       github: "[ADD]",
       live: "",
     },
-  ],
-
-  // Certifications / achievements: you supplied none, so these are
-  // placeholders only — no achievements have been invented.
-  certifications: [
-    { title: "[ADD certification]", detail: "[ADD]" },
-    { title: "[ADD certification]", detail: "[ADD]" },
-    { title: "[ADD achievement]", detail: "[ADD]" },
   ],
 
   contact: {
