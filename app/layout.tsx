@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Inter, JetBrains_Mono, Playfair_Display, Syncopate } from "next/font/google";
 import "./globals.css";
 
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans", weight: ["400", "500", "600"] });
-const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", weight: ["500", "600", "700"] });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weight: ["400", "500"] });
+// Fonts from the uploaded specification: Inter for body, Playfair Display
+// for the hero title, Syncopate for large display text, JetBrains Mono
+// for indices, badges and metadata.
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["300", "400", "500", "700", "800"],
+});
+const serif = Playfair_Display({ subsets: ["latin"], variable: "--font-serif", weight: ["800"] });
+const display = Syncopate({ subsets: ["latin"], variable: "--font-display", weight: ["400", "700"] });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weight: ["400", "500", "800"] });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://ganesh-portfolio-indol.vercel.app"),
@@ -32,8 +40,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable}`}>
-      <body className="bg-[#0a0a0f] font-sans text-[#f8fafc]">{children}</body>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${display.variable} ${mono.variable}`}>
+      <body className="bg-[#030303] font-sans text-[#e0e0e0]">{children}</body>
     </html>
   );
 }

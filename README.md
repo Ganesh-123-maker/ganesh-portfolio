@@ -8,14 +8,14 @@ https://ganesh-portfolio-indol.vercel.app/
 
 ## Screenshots
 
-See the live site above for the current design: a dark hero with a gradient name and ambient violet/cyan glows, an About & Education section with a portrait and an education card, a Tech Stack grid, a Projects grid, and a Contact section.
+See the live site above for the current design: a dark, full-viewport hero with a large serif name, an About & Education section with a portrait and an education card, a Skills grid, a Projects grid, and a Contact section.
 
 ## Tech Stack
 
 - Next.js 14 (App Router) with React 18 and TypeScript
 - Tailwind CSS 3
 - Framer Motion for scroll and reveal animations
-- Space Grotesk for headings, Inter for body copy, JetBrains Mono for indices and badges
+- Playfair Display for the hero title, Inter for body copy, Syncopate for large display text, JetBrains Mono for indices, badges, and metadata
 - Vercel for hosting and deployment
 
 See `design-spec.md` for the full design system: typography, colours, layout, breakpoints, and animations.
@@ -23,8 +23,8 @@ See `design-spec.md` for the full design system: typography, colours, layout, br
 ## Features
 
 - Floating pill navigation with a mobile menu and a resume download
-- Hero with a gradient name, ambient violet/cyan glows, and a highlights card
-- About, Journey, Tech Stack, Projects, and Contact sections in a single scrolling page
+- Hero with a large serif name, a tag line, and a scroll indicator
+- About & Education, Skills, Projects, and Contact sections in a single scrolling page
 - Project cards with stack tags, live demo links where available, and source code links where available
 - Contact form with success and error states and honeypot spam protection, wired to Formspree when configured, with a fallback contact panel when it is not
 - Responsive layout for mobile, tablet, and desktop

@@ -2,51 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design tokens from the uploaded specification. No keyframe
+   animations are defined in the uploaded stylesheet, so none are
+   added here; motion comes from CSS transitions and the
+   Framer Motion entrance used in the components. */
+:root {
+  --hs-bg: #030303;
+  --hs-card-bg: rgba(10, 10, 10, 0.4);
+  --hs-text: #e0e0e0;
+  --hs-accent: #c46b1f;
+  --hs-accent-2: #ffffff;
+  --hs-border: rgba(255, 255, 255, 0.1);
+  --hs-font-display: "Syncopate", sans-serif;
+  --hs-font-code: "JetBrains Mono", monospace;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background: #0a0a0f;
-  color: #f8fafc;
+  background: #030303;
+  color: #e0e0e0;
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: #8b5cf6;
+  background: #c46b1f;
   color: #fff;
 }
 
-/* Section heading: clamp(1.875rem, 3.5vw, 2.75rem), weight 700, tracking -0.02em */
+/* Section title: Inter 800, clamp(2.2rem, 5vw, 4.5rem), line-height 0.92,
+   letter-spacing -0.02em. */
 .section-heading {
-  font-family: var(--font-display), system-ui, sans-serif;
-  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
-  font-weight: 700;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.1;
+  line-height: 0.92;
 }
 
-/* Subtle horizontal divider under section headings */
-.section-divider {
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.15), transparent);
+/* Projects title: clamp(2.2rem, 5.5vw, 4.8rem), same weight and
+   line-height as the other section titles. */
+.section-heading-projects {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(2.2rem, 5.5vw, 4.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.92;
 }
 
-/* Accent gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%) */
-.accent-gradient {
-  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+/* Section kicker: Inter 500, 0.75rem, letter-spacing 0.35em, accent,
+   uppercase. */
+.section-kicker {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.35em;
+  color: var(--hs-accent);
+  text-transform: uppercase;
 }
 
-.accent-gradient-text {
-  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Projects kicker: same as the section kicker, but letter-spacing
+   0.45em instead of 0.35em. */
+.section-kicker-projects {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.45em;
+  color: var(--hs-accent);
+  text-transform: uppercase;
 }
 
-/* Glass navbar and panels */
+/* Hero title: Playfair Display 800, clamp(2.75rem, 12vw, 11rem),
+   line-height 0.92, letter-spacing -0.02em, color #e7dbcf. */
+.hero-title {
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2.75rem, 12vw, 11rem);
+  font-weight: 800;
+  color: #e7dbcf;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  padding: 0 0.25rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Hero tag line: Inter, clamp(0.65rem, 1.8vw, 0.85rem),
+   letter-spacing clamp(0.18em, 1.8vw, 0.5em), color #aea095,
+   opacity 0.6, uppercase. */
+.hero-tagline {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+  letter-spacing: clamp(0.18em, 1.8vw, 0.5em);
+  color: #aea095;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+/* Glass navbar and panels: rgba(0, 0, 0, 0.35), blur 12px. */
 .glass {
-  background: rgba(10, 10, 15, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Solid accent used for primary buttons and the resume-fill. */
+.accent-solid {
+  background: #c46b1f;
 }

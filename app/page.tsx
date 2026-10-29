@@ -2,7 +2,7 @@ import { Navbar, Hero, About, Skills, Projects, ContactFooter } from "@/componen
 
 export default function Home() {
   return (
-    <main className="relative bg-[#0a0a0f] text-[#f8fafc]">
+    <main className="relative bg-[#030303] text-[#e0e0e0]">
       <Navbar />
       <Hero />
       <About />
