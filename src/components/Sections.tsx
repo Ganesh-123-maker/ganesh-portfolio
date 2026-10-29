@@ -39,7 +39,7 @@ function SectionHeading({
         <p className={kickerClassName}>{index}.</p>
         <h2 className={`${titleClassName} mt-3`}>{title}</h2>
         {subtitle ? (
-          <p className="mt-4 max-w-[70ch] text-[clamp(0.9rem,1.3vw,1.05rem)] leading-[1.7] text-white/60">{subtitle}</p>
+          <p className="mt-4 max-w-[70ch] text-[clamp(0.85rem,1.1vw,0.95rem)] leading-[1.7] text-white/60">{subtitle}</p>
         ) : null}
       </div>
     </Reveal>
@@ -135,7 +135,7 @@ export function Hero() {
             <span className="hero-tagline">{portfolio.roleLine}</span>
             <span className="h-px w-[clamp(36px,10vw,80px)] bg-[#c46b1f] opacity-90" aria-hidden="true" />
           </div>
-          <p className="mx-auto mt-6 max-w-[62ch] text-[clamp(0.95rem,1.4vw,1rem)] leading-[1.7] text-white/60">
+          <p className="mx-auto mt-6 max-w-[62ch] text-[clamp(0.9rem,1.2vw,0.95rem)] leading-[1.7] text-white/60">
             {portfolio.tagline}
           </p>
           <p className="mt-4 font-medium text-white/80">{portfolio.seeking}</p>
@@ -177,10 +177,10 @@ export function About() {
           <h2 className="section-kicker flex w-full justify-center">02. About Me</h2>
         </Reveal>
         <div className="mt-[30px] flex flex-col items-center gap-6 text-center min-[641px]:flex-row min-[641px]:items-center min-[641px]:justify-between min-[641px]:gap-6 min-[641px]:text-left min-[901px]:gap-8">
-          <div className="w-full font-light leading-[1.7] text-white min-[641px]:w-[62%] min-[641px]:leading-[clamp(2rem,5vw,4.5rem)] min-[901px]:w-[60%]">
+          <div className="w-full font-light leading-[1.7] text-white min-[641px]:w-[62%] min-[641px]:leading-[clamp(1.6rem,3.5vw,2.75rem)] min-[901px]:w-[60%]">
             {portfolio.about.map((para, i) => (
               <Reveal key={i} delay={0.08 * i}>
-                <p className="text-[clamp(1.2rem,3.2vw,2.5rem)]">{para}</p>
+                <p className="text-[clamp(1rem,2.2vw,1.75rem)]">{para}</p>
               </Reveal>
             ))}
           </div>
@@ -197,7 +197,7 @@ export function About() {
         <Reveal delay={0.08}>
           <div className="mt-14 rounded-2xl border border-line bg-surface p-6 shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-all duration-300 hover:border-accent hover:bg-surfaceHover">
             <p className="font-mono text-[11px] tracking-[0.38em] text-accent">{portfolio.education.period}</p>
-            <h3 className="mt-3 text-[clamp(1.6rem,4.2vw,3.5rem)] font-extrabold leading-[1.05]">{portfolio.education.degree}</h3>
+            <h3 className="mt-3 text-[clamp(1.25rem,2.5vw,1.75rem)] font-extrabold leading-[1.05]">{portfolio.education.degree}</h3>
             <p className="mt-2 text-[0.9rem] tracking-[0.08em] text-white/75">{portfolio.education.school}</p>
             <p className="mt-3 max-w-[58ch] text-[0.95rem] leading-[1.8] text-white/45">{portfolio.education.detail}</p>
             <div className="mt-8 border-t border-line pt-6">
@@ -227,7 +227,7 @@ export function Skills() {
         <Reveal>
           <p className="section-kicker">03. Skills</p>
           <h2 className="section-heading mt-2.5">Technical Expertise</h2>
-          <p className="mx-auto mt-2.5 max-w-[60ch] text-[clamp(0.9rem,2vw,1rem)] font-light leading-[1.5] text-white/60">
+          <p className="mx-auto mt-2.5 max-w-[60ch] text-[clamp(0.85rem,1.5vw,0.95rem)] font-light leading-[1.5] text-white/60">
             Technologies I use to build full-stack and AI-integrated applications.
           </p>
         </Reveal>
@@ -244,7 +244,7 @@ export function Skills() {
               whileInView={{ opacity: 0.9, scale: 1, filter: "blur(0px)" }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="relative whitespace-nowrap font-display text-[clamp(3rem,10vw,8rem)] font-bold uppercase tracking-[clamp(-0.1rem,-1vw,-0.5rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
+              className="relative whitespace-nowrap font-display text-[clamp(1.75rem,6vw,4.5rem)] font-bold uppercase tracking-[clamp(-0.05rem,-0.5vw,-0.25rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
               aria-hidden="true"
             >
               {group.domain}
@@ -281,12 +281,12 @@ export function Skills() {
                       <span className="font-mono text-xs text-accent">{n}</span>
                       <span className="h-2 w-2 bg-accent" aria-hidden="true" />
                     </div>
-                    <h4 className="mt-4 font-display text-[clamp(1.3rem,3vw,2rem)] font-bold uppercase leading-[0.95] text-white">
+                    <h4 className="mt-4 font-display text-[clamp(1.1rem,2vw,1.5rem)] font-bold uppercase leading-[0.95] text-white">
                       {skill}
                     </h4>
                     <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-white/45">{group.domain}</p>
                     <p className="mt-auto pt-4 font-mono text-[0.65rem] text-white/40">Skill {n} / 22</p>
-                    <span className="absolute bottom-6 right-6 text-[3rem] font-black text-white opacity-10" aria-hidden="true">
+                    <span className="absolute bottom-6 right-6 text-[2rem] font-black text-white opacity-10" aria-hidden="true">
                       {n}
                     </span>
                   </motion.article>
@@ -329,13 +329,13 @@ export function Projects() {
                 <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/55 to-black/85 opacity-100 transition-opacity duration-300 group-hover:opacity-85" />
               </div>
               <div className="flex flex-1 flex-col p-[clamp(16px,2vw,22px)]">
-                <h3 className="text-[clamp(1.1rem,1.5vw,1.35rem)] font-bold tracking-[-0.01em]">{project.title}</h3>
+                <h3 className="text-[clamp(1rem,1.2vw,1.25rem)] font-bold tracking-[-0.01em]">{project.title}</h3>
                 {project.badge ? (
                   <span className="mt-3 inline-flex w-fit rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
                     {project.badge}
                   </span>
                 ) : null}
-                <p className="mt-3 flex-1 text-[clamp(0.88rem,1.1vw,0.95rem)] leading-[1.65] text-white/50">{project.description}</p>
+                <p className="mt-3 flex-1 text-[clamp(0.85rem,1vw,0.92rem)] leading-[1.65] text-white/50">{project.description}</p>
                 {project.stack.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {project.stack.map((tag) => (
@@ -433,10 +433,10 @@ export function ContactFooter() {
           <Reveal className="w-full min-w-0 min-[901px]:flex-[1_1_58%] min-[901px]:max-w-[680px]">
             <div>
               <p className="section-kicker">05. Get in Touch</p>
-              <h3 className="mt-[clamp(14px,3vw,22px)] text-[clamp(2.2rem,5.2vw,5.4rem)] font-extrabold leading-[0.92] tracking-[-0.03em]">
+              <h3 className="mt-[clamp(14px,3vw,22px)] text-[clamp(1.75rem,4vw,3.25rem)] font-extrabold leading-[0.92] tracking-[-0.03em]">
                 {portfolio.contact.heading}
               </h3>
-              <p className="mt-[clamp(18px,4vw,34px)] max-w-[56ch] text-[clamp(0.95rem,1.4vw,1rem)] leading-[1.7] text-white/55">
+              <p className="mt-[clamp(18px,4vw,34px)] max-w-[56ch] text-[clamp(0.9rem,1.2vw,0.95rem)] leading-[1.7] text-white/55">
                 {portfolio.contact.text}
               </p>
               <div className="mt-[18px] flex flex-col gap-2.5">
@@ -445,7 +445,7 @@ export function ContactFooter() {
                     href={portfolio.links.github}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-fit border-b border-white/25 pb-1.5 text-[clamp(1.05rem,3.2vw,1.35rem)] font-semibold text-[#ffffffeb] hover:border-white/60"
+                    className="w-fit border-b border-white/25 pb-1.5 text-[clamp(0.95rem,2.5vw,1.15rem)] font-semibold text-[#ffffffeb] hover:border-white/60"
                   >
                     GitHub
                   </a>
@@ -456,7 +456,7 @@ export function ContactFooter() {
                       href={portfolio.links.linkedin}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-fit border-b border-white/25 pb-1.5 text-[clamp(1.05rem,3.2vw,1.35rem)] font-semibold text-[#ffffffeb] hover:border-white/60"
+                      className="w-fit border-b border-white/25 pb-1.5 text-[clamp(0.95rem,2.5vw,1.15rem)] font-semibold text-[#ffffffeb] hover:border-white/60"
                     >
                       LinkedIn
                     </a>
@@ -466,7 +466,7 @@ export function ContactFooter() {
                   <p>
                     <a
                       href={`mailto:${portfolio.links.email}`}
-                      className="w-fit border-b border-white/25 pb-1.5 text-[clamp(1.05rem,3.2vw,1.35rem)] font-semibold text-[#ffffffeb] hover:border-white/60"
+                      className="w-fit border-b border-white/25 pb-1.5 text-[clamp(0.95rem,2.5vw,1.15rem)] font-semibold text-[#ffffffeb] hover:border-white/60"
                     >
                       {portfolio.links.email}
                     </a>
