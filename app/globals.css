@@ -32,22 +32,21 @@ body {
   color: #fff;
 }
 
-/* Section title: Inter 800, scaled down from the uploaded spec so
-   headings read smaller on all screens, line-height 0.92,
+/* Section title: Inter 800, reference clamp, line-height 0.92,
    letter-spacing -0.02em. */
 .section-heading {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.5rem, 3.5vw, 2.75rem);
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 0.92;
 }
 
-/* Projects title: scaled down, same weight and
+/* Projects title: reference clamp, same weight and
    line-height as the other section titles. */
 .section-heading-projects {
   font-family: var(--font-sans), system-ui, sans-serif;
-  font-size: clamp(1.5rem, 3.5vw, 3rem);
+  font-size: clamp(2.2rem, 5.5vw, 4.8rem);
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 0.92;
@@ -75,12 +74,12 @@ body {
   text-transform: uppercase;
 }
 
-/* Hero title: Playfair Display 800, scaled down so the name is
-   large but not edge-to-edge huge, line-height 0.92,
-   letter-spacing -0.02em, color #e7dbcf. */
+/* Hero title: Playfair Display 800, reference clamp (restored
+   after user said the scaled-down fonts/spaces were mostly a
+   mistake), line-height 0.92, letter-spacing -0.02em. */
 .hero-title {
   font-family: var(--font-serif), serif;
-  font-size: clamp(2rem, 8vw, 6rem);
+  font-size: clamp(2.75rem, 12vw, 11rem);
   font-weight: 800;
   color: #e7dbcf;
   line-height: 0.92;

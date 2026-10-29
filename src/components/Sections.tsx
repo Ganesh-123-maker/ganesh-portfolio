@@ -25,8 +25,9 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
 // into focus, dim below until reached. Original Ganesh text only.
 function AboutWord({ word, progress, index, total }: { word: string; progress: MotionValue<number>; index: number; total: number }) {
   const opacity = useTransform(progress, [index / total, (index + 1) / total], [0.25, 1]);
+  const y = useTransform(progress, [index / total, (index + 1) / total], [12, 0]);
   return (
-    <motion.span style={{ opacity }} className="inline-block">
+    <motion.span style={{ opacity, y }} className="inline-block">
       {word}
       {" "}
     </motion.span>
@@ -38,7 +39,7 @@ function AboutParagraph({ text }: { text: string }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
   const words = text.split(" ");
   return (
-    <p ref={ref} className="text-[clamp(1rem,2.2vw,1.75rem)]">
+    <p ref={ref} className="text-[clamp(1.2rem,3.2vw,2.5rem)]">
       {words.map((word, i) => (
         <AboutWord key={`${word}-${i}`} word={word} progress={scrollYProgress} index={i} total={words.length} />
       ))}
@@ -48,16 +49,17 @@ function AboutParagraph({ text }: { text: string }) {
 
 // Journey card: blur-to-sharp fade as it arrives in the viewport.
 type JourneyEntry = { period: string; title: string; org: string; detail: string };
-function JourneyCard({ entry }: { entry: JourneyEntry }) {
+function JourneyCard({ entry, dir }: { entry: JourneyEntry; dir: number }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
   const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
   const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
   const filter = useTransform(scrollYProgress, [0, 1], ["blur(8px)", "blur(0px)"]);
+  const x = useTransform(scrollYProgress, [0, 1], [dir * 60, 0]);
   return (
-    <motion.article ref={ref} style={{ opacity, y, filter }} className="w-full max-w-[560px] text-center will-change-transform">
+    <motion.article ref={ref} style={{ opacity, y, x, filter }} className="w-full max-w-[560px] text-center will-change-transform">
       <p className="mb-3 font-mono text-[11px] tracking-[0.38em] text-accent">{entry.period}</p>
-      <h3 className="mb-2.5 text-[clamp(1.25rem,2.5vw,1.75rem)] font-extrabold leading-[1.05]">{entry.title}</h3>
+      <h3 className="mb-2.5 text-[clamp(1.6rem,4.2vw,3.5rem)] font-extrabold leading-[1.05]">{entry.title}</h3>
       <p className="mb-3.5 text-[0.9rem] tracking-[0.08em] text-white/75">{entry.org}</p>
       {entry.detail ? (
         <p className="mx-auto max-w-[58ch] text-[0.95rem] leading-[1.8] text-white/45">{entry.detail}</p>
@@ -92,14 +94,16 @@ function deckCardValue(
   const stagger = groupSize > 1 ? (cardIndex / (groupSize - 1)) * 0.3 : 0;
   const appear = Math.min(1, Math.max(0, (local - stagger) / 0.5));
   const exit = Math.min(1, Math.max(0, (local - 0.85) / 0.15));
+  const slide = cardIndex % 2 === 0 ? -160 : 160;
+  const pop = 0.08 * Math.sin(appear * Math.PI);
   const vals = {
     opacity: appear * (1 - exit),
-    scale: 0.7 + 0.3 * appear - 0.2 * exit,
-    x: fanX * appear,
+    scale: 0.7 + 0.3 * appear + pop - 0.2 * exit,
+    x: fanX + slide * (1 - appear),
     y: 80 * (1 - appear) - 40 * exit,
     rotateX: 25 * (1 - appear) - 10 * exit,
-    rotateY: fanRot * (0.5 + 0.5 * appear),
-    z: -150 * (1 - appear) - 100 * exit,
+    rotateY: fanRot * (0.5 + 0.5 * appear) + (cardIndex % 2 === 0 ? -25 : 25) * (1 - appear),
+    z: -150 * (1 - appear) + 50 * Math.sin(appear * Math.PI) - 100 * exit,
   };
   return vals[prop];
 }
@@ -118,9 +122,16 @@ function DeckWord({ word, progress, groupIndex, totalGroups }: { word: string; p
     if (local < 0 || local > 1) return 0.95;
     return 0.95 + 0.05 * Math.min(1, local / 0.3);
   });
+  const x = useTransform(progress, (v: number) => {
+    const seg = 1 / totalGroups;
+    const local = (v - groupIndex * seg) / seg;
+    if (local < 0) return -120;
+    if (local > 1) return 120;
+    return -120 * (1 - Math.min(1, local / 0.3));
+  });
   return (
     <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2" aria-hidden="true">
-      <motion.p style={{ opacity, scale }} className="whitespace-nowrap font-display text-[clamp(1.75rem,6vw,4.5rem)] font-bold uppercase tracking-[clamp(-0.05rem,-0.5vw,-0.25rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]">
+      <motion.p style={{ opacity, scale, x }} className="whitespace-nowrap font-display text-[clamp(3rem,10vw,8rem)] font-bold uppercase tracking-[clamp(-0.1rem,-1vw,-0.5rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]">
         {word}
       </motion.p>
     </div>
@@ -145,12 +156,12 @@ function DeckCard({ skill, domain, n, progress, groupIndex, cardIndex, groupSize
           <span className="font-mono text-xs text-accent">{n}</span>
           <span className="h-2 w-2 bg-accent" aria-hidden="true" />
         </div>
-        <h4 className="mt-4 font-display text-[clamp(1.1rem,2vw,1.5rem)] font-bold uppercase leading-[0.95] text-white">
+        <h4 className="mt-4 font-display text-[clamp(1.3rem,3vw,2rem)] font-bold uppercase leading-[0.95] text-white">
           {skill}
         </h4>
         <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-white/45">{domain}</p>
         <p className="mt-auto pt-4 font-mono text-[0.65rem] text-white/40">Skill {n} / 22</p>
-        <span className="absolute bottom-6 right-6 text-[2rem] font-black text-white opacity-10" aria-hidden="true">
+        <span className="absolute bottom-6 right-6 text-[3rem] font-black text-white opacity-10" aria-hidden="true">
           {n}
         </span>
       </motion.article>
@@ -167,17 +178,18 @@ type ProjectItem = {
   badge: string;
 };
 
-function ProjectDepthCard({ project }: { project: ProjectItem }) {
+function ProjectDepthCard({ project, index }: { project: ProjectItem; index: number }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
   const scale = useTransform(scrollYProgress, [0, 1], [0.88, 1]);
   const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
   const y = useTransform(scrollYProgress, [0, 1], [50, 0]);
   const rotateX = useTransform(scrollYProgress, [0, 1], [20, 0]);
+  const x = useTransform(scrollYProgress, [0, 1], [index % 2 === 0 ? -80 : 80, 0]);
   return (
     <motion.article
       ref={ref}
-      style={{ scale, opacity, y, rotateX, transformPerspective: 1200, transformStyle: "preserve-3d" }}
+      style={{ scale, opacity, x, y, rotateX, transformPerspective: 1200, transformStyle: "preserve-3d" }}
       className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[#0a0a0a59] shadow-[0_24px_70px_#0000008c] backdrop-blur-[10px] transition-all duration-300 hover:-translate-y-2 hover:border-[#c46b1f59] hover:shadow-[0_26px_90px_#000000b3,0_0_0_1px_#c46b1f2e,0_0_38px_#c46b1f2e]"
     >
       <div className="relative h-[clamp(200px,22vw,260px)] w-full overflow-hidden max-[480px]:h-[190px]" aria-hidden="true">
@@ -280,7 +292,7 @@ export function Navbar() {
         <a
           href="#home"
           aria-label="Home"
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-line text-white"
+          className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full border border-line text-white"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M3 10.5 12 3l9 7.5" />
@@ -348,6 +360,12 @@ export function Hero() {
   const heroOpacity = useTransform(heroProgress, [0, 1], [1, 0.6]);
   return (
     <section ref={heroRef} id="home" className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5">
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(241,129,31,0.2),rgba(196,107,31,0.06),transparent_60%)] blur-[60px] opacity-90" />
+        {Array.from({ length: 60 }, (_, i) => (
+          <span key={i} className="absolute h-[2px] w-[2px] rounded-full bg-white opacity-50" style={{ left: `${(i * 37 + 13) % 100}%`, top: `${(i * 53 + 7) % 100}%` }} />
+        ))}
+      </div>
       <div className="relative z-[2] mx-auto flex w-[80%] flex-col items-center justify-center pb-16 pt-24 text-center">
         <motion.div style={{ scale: heroScale, opacity: heroOpacity }} className="w-full">
         <motion.div
@@ -405,7 +423,7 @@ export function About() {
           <h2 className="section-kicker flex w-full justify-center">01. About Me</h2>
         </Reveal>
         <div className="mt-[30px] flex flex-col items-center gap-6 text-center min-[641px]:flex-row min-[641px]:items-center min-[641px]:justify-between min-[641px]:gap-6 min-[641px]:text-left min-[901px]:gap-8">
-          <div className="w-full font-light leading-[1.7] text-white min-[641px]:w-[62%] min-[641px]:leading-[clamp(1.6rem,3.5vw,2.75rem)] min-[901px]:w-[60%]">
+          <div className="w-full font-light leading-[clamp(2rem,5vw,4.5rem)] text-white min-[641px]:w-[62%] min-[901px]:w-[60%]">
             {portfolio.about.map((para, i) => (
               <div key={i} className="mb-4 last:mb-0">
                 <AboutParagraph text={para} />
@@ -450,7 +468,7 @@ export function Journey() {
       <div className="mx-auto mb-[clamp(24px,5vw,56px)] px-[clamp(16px,4vw,40px)] text-center">
         <Reveal>
           <p className="section-kicker">02. Journey</p>
-          <h2 className="section-heading mt-3.5">Journey</h2>
+          <h2 className="mt-3.5 font-sans text-[clamp(2.2rem,6vw,5.25rem)] font-extrabold leading-[0.95] tracking-[-0.02em]">Journey</h2>
           <p className="mx-auto mt-4 max-w-[62ch] text-[clamp(0.9rem,1.2vw,0.95rem)] leading-[1.7] text-white/60">
             Education and experience, in order.
           </p>
@@ -463,16 +481,16 @@ export function Journey() {
         {entries.map((entry, i) => (
           <div key={entry.title} className="relative flex items-center py-[clamp(26px,4vw,44px)]">
             <div className="flex min-w-0 flex-1 justify-center max-[900px]:hidden min-[901px]:justify-end min-[901px]:pr-[clamp(18px,4vw,52px)]">
-              {i % 2 === 0 ? <JourneyCard entry={entry} /> : null}
+              {i % 2 === 0 ? <JourneyCard entry={entry} dir={-1} /> : null}
             </div>
             <div className="relative w-[clamp(56px,6vw,80px)] shrink-0 max-[900px]:hidden" aria-hidden="true">
               <span className="absolute left-1/2 top-1/2 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-[#050505e6] shadow-[0_0_0_6px_rgba(196,107,31,0.08)]" />
             </div>
             <div className="flex min-w-0 flex-1 justify-center max-[900px]:hidden min-[901px]:justify-start min-[901px]:pl-[clamp(18px,4vw,52px)]">
-              {i % 2 === 1 ? <JourneyCard entry={entry} /> : null}
+              {i % 2 === 1 ? <JourneyCard entry={entry} dir={1} /> : null}
             </div>
             <div className="hidden w-full justify-center max-[900px]:flex">
-              <JourneyCard entry={entry} />
+              <JourneyCard entry={entry} dir={i % 2 === 0 ? -1 : 1} />
             </div>
           </div>
         ))}
@@ -551,8 +569,8 @@ export function Projects() {
         />
       </div>
       <div className="mx-auto mt-[clamp(30px,5vw,42px)] grid w-[min(1200px,92%)] grid-cols-2 gap-[clamp(20px,3vw,28px)] max-[900px]:w-[94%] max-[900px]:grid-cols-1" style={{ perspective: 1200 }}>
-        {portfolio.projects.map((project) => (
-          <ProjectDepthCard key={project.title} project={project} />
+        {portfolio.projects.map((project, i) => (
+          <ProjectDepthCard key={project.title} project={project} index={i} />
         ))}
       </div>
     </section>
@@ -611,7 +629,7 @@ export function ContactFooter() {
           <Reveal className="w-full min-w-0 min-[901px]:flex-[1_1_58%] min-[901px]:max-w-[680px]">
             <div>
               <p className="section-kicker">05. Get in Touch</p>
-              <h3 className="mt-[clamp(14px,3vw,22px)] text-[clamp(1.75rem,4vw,3.25rem)] font-extrabold leading-[0.92] tracking-[-0.03em]">
+              <h3 className="mt-[clamp(14px,3vw,22px)] text-[clamp(2.2rem,5.2vw,5.4rem)] font-extrabold leading-[0.92] tracking-[-0.03em]">
                 {portfolio.contact.heading}
               </h3>
               <p className="mt-[clamp(18px,4vw,34px)] max-w-[56ch] text-[clamp(0.9rem,1.2vw,0.95rem)] leading-[1.7] text-white/55">
