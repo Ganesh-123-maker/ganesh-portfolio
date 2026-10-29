@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import Image from "next/image";
 import { portfolio } from "@/data/portfolio";
 
@@ -21,55 +21,140 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
 }
 
 
-// Scroll-driven depth: each element binds its own scale / opacity /
-// depth to how far it has scrolled into the viewport, so it moves
-// forward out of the background as you scroll, instead of playing
-// a one-time entrance animation.
-function DepthWord({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 0.9]);
-  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
+// About word-by-word reveal: each word brightens as it scrolls
+// into focus, dim below until reached. Original Ganesh text only.
+function AboutWord({ word, progress, index, total }: { word: string; progress: MotionValue<number>; index: number; total: number }) {
+  const opacity = useTransform(progress, [index / total, (index + 1) / total], [0.25, 1]);
   return (
-    <motion.p
-      ref={ref}
-      style={{ scale, opacity, y }}
-      className="sticky top-20 z-0 whitespace-nowrap font-display text-[clamp(1.75rem,6vw,4.5rem)] font-bold uppercase tracking-[clamp(-0.05rem,-0.5vw,-0.25rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]"
-      aria-hidden="true"
-    >
-      {children}
-    </motion.p>
+    <motion.span style={{ opacity }} className="inline-block">
+      {word}
+      {" "}
+    </motion.span>
   );
 }
 
-function SkillDepthCard({ skill, domain, n, fan }: { skill: string; domain: string; n: string; fan: number }) {
+function AboutParagraph({ text }: { text: string }) {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
+  const words = text.split(" ");
+  return (
+    <p ref={ref} className="text-[clamp(1rem,2.2vw,1.75rem)]">
+      {words.map((word, i) => (
+        <AboutWord key={`${word}-${i}`} word={word} progress={scrollYProgress} index={i} total={words.length} />
+      ))}
+    </p>
+  );
+}
+
+// Journey card: blur-to-sharp fade as it arrives in the viewport.
+type JourneyEntry = { period: string; title: string; org: string; detail: string };
+function JourneyCard({ entry }: { entry: JourneyEntry }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
   const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [60, 0]);
-  const rotateX = useTransform(scrollYProgress, [0, 1], [25, 0]);
-  const rotateY = useTransform(scrollYProgress, [0, 1], [fan, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
+  const filter = useTransform(scrollYProgress, [0, 1], ["blur(8px)", "blur(0px)"]);
   return (
-    <motion.article
-      ref={ref}
-      style={{ scale, opacity, y, rotateX, rotateY, transformPerspective: 1200, transformStyle: "preserve-3d" }}
-      className="relative flex h-full flex-col justify-between bg-surface p-6 text-center shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-all duration-300 hover:z-10 hover:border-accent hover:bg-surfaceHover hover:shadow-[0_0_30px_#c46b1f38] border border-line"
-    >
-      <div className="flex items-center justify-center gap-4 border-b border-line pb-3">
-        <span className="font-mono text-xs text-accent">{n}</span>
-        <span className="h-2 w-2 bg-accent" aria-hidden="true" />
-      </div>
-      <h4 className="mt-4 font-display text-[clamp(1.1rem,2vw,1.5rem)] font-bold uppercase leading-[0.95] text-white">
-        {skill}
-      </h4>
-      <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-white/45">{domain}</p>
-      <p className="mt-auto pt-4 font-mono text-[0.65rem] text-white/40">Skill {n} / 22</p>
-      <span className="absolute bottom-6 right-6 text-[2rem] font-black text-white opacity-10" aria-hidden="true">
-        {n}
-      </span>
+    <motion.article ref={ref} style={{ opacity, y, filter }} className="w-full max-w-[560px] text-center will-change-transform">
+      <p className="mb-3 font-mono text-[11px] tracking-[0.38em] text-accent">{entry.period}</p>
+      <h3 className="mb-2.5 text-[clamp(1.25rem,2.5vw,1.75rem)] font-extrabold leading-[1.05]">{entry.title}</h3>
+      <p className="mb-3.5 text-[0.9rem] tracking-[0.08em] text-white/75">{entry.org}</p>
+      {entry.detail ? (
+        <p className="mx-auto max-w-[58ch] text-[0.95rem] leading-[1.8] text-white/45">{entry.detail}</p>
+      ) : null}
     </motion.article>
+  );
+}
+
+// Skills deck: one card's state from global deck scroll progress.
+// Before its group segment it sits deep and invisible; during the
+// segment it fans into its slot; at the segment end it sinks back.
+function deckCardValue(
+  v: number,
+  groupIndex: number,
+  cardIndex: number,
+  groupSize: number,
+  totalGroups: number,
+  prop: "opacity" | "scale" | "x" | "y" | "rotateX" | "rotateY" | "z",
+): number {
+  const seg = 1 / totalGroups;
+  const start = groupIndex * seg;
+  const local = (v - start) / seg;
+  const centre = (groupSize - 1) / 2;
+  const fanX = (cardIndex - centre) * 45;
+  const fanRot = (cardIndex - centre) * 8;
+  if (local < 0) {
+    return { opacity: 0, scale: 0.7, x: fanX * 0.5, y: 100, rotateX: 30, rotateY: fanRot, z: -200 }[prop];
+  }
+  if (local > 1) {
+    return { opacity: 0, scale: 0.8, x: fanX, y: -80, rotateX: -15, rotateY: fanRot, z: -150 }[prop];
+  }
+  const stagger = groupSize > 1 ? (cardIndex / (groupSize - 1)) * 0.3 : 0;
+  const appear = Math.min(1, Math.max(0, (local - stagger) / 0.5));
+  const exit = Math.min(1, Math.max(0, (local - 0.85) / 0.15));
+  const vals = {
+    opacity: appear * (1 - exit),
+    scale: 0.7 + 0.3 * appear - 0.2 * exit,
+    x: fanX * appear,
+    y: 80 * (1 - appear) - 40 * exit,
+    rotateX: 25 * (1 - appear) - 10 * exit,
+    rotateY: fanRot * (0.5 + 0.5 * appear),
+    z: -150 * (1 - appear) - 100 * exit,
+  };
+  return vals[prop];
+}
+
+function DeckWord({ word, progress, groupIndex, totalGroups }: { word: string; progress: MotionValue<number>; groupIndex: number; totalGroups: number }) {
+  const opacity = useTransform(progress, (v: number) => {
+    const seg = 1 / totalGroups;
+    const local = (v - groupIndex * seg) / seg;
+    if (local < 0 || local > 1) return 0;
+    const edge = Math.min(1, Math.min(local / 0.1, (1 - local) / 0.1));
+    return 0.9 * edge;
+  });
+  const scale = useTransform(progress, (v: number) => {
+    const seg = 1 / totalGroups;
+    const local = (v - groupIndex * seg) / seg;
+    if (local < 0 || local > 1) return 0.95;
+    return 0.95 + 0.05 * Math.min(1, local / 0.3);
+  });
+  return (
+    <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2" aria-hidden="true">
+      <motion.p style={{ opacity, scale }} className="whitespace-nowrap font-display text-[clamp(1.75rem,6vw,4.5rem)] font-bold uppercase tracking-[clamp(-0.05rem,-0.5vw,-0.25rem)] text-transparent [-webkit-text-stroke:2px_rgba(255,255,255,0.15)]">
+        {word}
+      </motion.p>
+    </div>
+  );
+}
+
+function DeckCard({ skill, domain, n, progress, groupIndex, cardIndex, groupSize, totalGroups }: { skill: string; domain: string; n: string; progress: MotionValue<number>; groupIndex: number; cardIndex: number; groupSize: number; totalGroups: number }) {
+  const opacity = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "opacity"));
+  const scale = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "scale"));
+  const x = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "x"));
+  const y = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "y"));
+  const rotateX = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "rotateX"));
+  const rotateY = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "rotateY"));
+  const z = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "z"));
+  return (
+    <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+      <motion.article
+        style={{ opacity, scale, x, y, rotateX, rotateY, z, transformPerspective: 700, transformStyle: "preserve-3d" }}
+        className="relative flex h-[clamp(320px,35vw,410px)] w-[clamp(220px,25vw,290px)] flex-col justify-between border border-line bg-surface p-6 text-center shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-colors duration-300 hover:border-accent hover:bg-surfaceHover hover:shadow-[0_0_30px_#c46b1f38]"
+      >
+        <div className="flex items-center justify-center gap-4 border-b border-line pb-3">
+          <span className="font-mono text-xs text-accent">{n}</span>
+          <span className="h-2 w-2 bg-accent" aria-hidden="true" />
+        </div>
+        <h4 className="mt-4 font-display text-[clamp(1.1rem,2vw,1.5rem)] font-bold uppercase leading-[0.95] text-white">
+          {skill}
+        </h4>
+        <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-white/45">{domain}</p>
+        <p className="mt-auto pt-4 font-mono text-[0.65rem] text-white/40">Skill {n} / 22</p>
+        <span className="absolute bottom-6 right-6 text-[2rem] font-black text-white opacity-10" aria-hidden="true">
+          {n}
+        </span>
+      </motion.article>
+    </div>
   );
 }
 
@@ -108,13 +193,13 @@ function ProjectDepthCard({ project }: { project: ProjectItem }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/55 to-black/85 opacity-100 transition-opacity duration-300 group-hover:opacity-85" />
       </div>
       <div className="flex flex-1 flex-col p-[clamp(16px,2vw,22px)]">
-        <h3 className="text-[clamp(1rem,1.2vw,1.25rem)] font-bold tracking-[-0.01em]">{project.title}</h3>
+        <h3 className="text-[clamp(1.1rem,1.5vw,1.35rem)] font-bold tracking-[-0.01em]">{project.title}</h3>
         {project.badge ? (
           <span className="mt-3 inline-flex w-fit rounded-full border border-accent/50 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
             {project.badge}
           </span>
         ) : null}
-        <p className="mt-3 flex-1 text-[clamp(0.85rem,1vw,0.92rem)] leading-[1.65] text-white/50">{project.description}</p>
+        <p className="mt-3 flex-1 text-[clamp(0.88rem,1.1vw,0.95rem)] leading-[1.65] text-white/50">{project.description}</p>
         {project.stack.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
             {project.stack.map((tag) => (
@@ -257,9 +342,14 @@ export function Navbar() {
 }
 
 export function Hero() {
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroScale = useTransform(heroProgress, [0, 1], [1, 1.08]);
+  const heroOpacity = useTransform(heroProgress, [0, 1], [1, 0.6]);
   return (
-    <section id="home" className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5">
+    <section ref={heroRef} id="home" className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5">
       <div className="relative z-[2] mx-auto flex w-[80%] flex-col items-center justify-center pb-16 pt-24 text-center">
+        <motion.div style={{ scale: heroScale, opacity: heroOpacity }} className="w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -301,6 +391,7 @@ export function Hero() {
             <span className="text-[0.85rem] opacity-75">Scroll down to explore</span>
           </a>
         </motion.div>
+        </motion.div>
       </div>
     </section>
   );
@@ -311,14 +402,14 @@ export function About() {
     <section id="about" className="scroll-mt-28 py-[50px] text-white min-[641px]:py-[70px]">
       <div className="mx-auto w-full max-w-[1200px] px-6">
         <Reveal>
-          <h2 className="section-kicker flex w-full justify-center">02. About Me</h2>
+          <h2 className="section-kicker flex w-full justify-center">01. About Me</h2>
         </Reveal>
         <div className="mt-[30px] flex flex-col items-center gap-6 text-center min-[641px]:flex-row min-[641px]:items-center min-[641px]:justify-between min-[641px]:gap-6 min-[641px]:text-left min-[901px]:gap-8">
           <div className="w-full font-light leading-[1.7] text-white min-[641px]:w-[62%] min-[641px]:leading-[clamp(1.6rem,3.5vw,2.75rem)] min-[901px]:w-[60%]">
             {portfolio.about.map((para, i) => (
-              <Reveal key={i} delay={0.08 * i}>
-                <p className="text-[clamp(1rem,2.2vw,1.75rem)]">{para}</p>
-              </Reveal>
+              <div key={i} className="mb-4 last:mb-0">
+                <AboutParagraph text={para} />
+              </div>
             ))}
           </div>
           <Reveal delay={0.08} className="w-[min(320px,90%)] shrink-0 min-[641px]:w-[34%] min-[901px]:w-[32%]">
@@ -331,63 +422,117 @@ export function About() {
             />
           </Reveal>
         </div>
-        <Reveal delay={0.08}>
-          <div className="mt-14 rounded-2xl border border-line bg-surface p-6 shadow-[0_0_0_1px_#00000080,0_20px_50px_#00000080] backdrop-blur-[8px] transition-all duration-300 hover:border-accent hover:bg-surfaceHover">
-            <p className="font-mono text-[11px] tracking-[0.38em] text-accent">{portfolio.education.period}</p>
-            <h3 className="mt-3 text-[clamp(1.25rem,2.5vw,1.75rem)] font-extrabold leading-[1.05]">{portfolio.education.degree}</h3>
-            <p className="mt-2 text-[0.9rem] tracking-[0.08em] text-white/75">{portfolio.education.school}</p>
-            <p className="mt-3 max-w-[58ch] text-[0.95rem] leading-[1.8] text-white/45">{portfolio.education.detail}</p>
-            <div className="mt-8 border-t border-line pt-6">
-              <p className="font-mono text-[11px] tracking-[0.38em] text-accent">Recent Experience</p>
-              {portfolio.experience.map((exp) => (
-                <div key={exp.company} className="mt-3">
-                  <h4 className="text-xl font-bold">{exp.role}</h4>
-                  <p className="mt-1 font-medium text-white/80">
-                    {exp.company} · {exp.location} · {exp.period}
-                  </p>
-                  {exp.detail ? <p className="mt-3 text-[0.95rem] leading-[1.8] text-white/45">{exp.detail}</p> : null}
-                </div>
-              ))}
+      </div>
+    </section>
+  );
+}
+
+export function Journey() {
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: timelineRef, offset: ["start 0.7", "end 0.5"] });
+  const fillScaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const entries: JourneyEntry[] = [
+    {
+      period: portfolio.education.period,
+      title: portfolio.education.degree,
+      org: portfolio.education.school,
+      detail: portfolio.education.detail,
+    },
+    ...portfolio.experience.map((exp) => ({
+      period: exp.period,
+      title: exp.role,
+      org: `${exp.company} · ${exp.location}`,
+      detail: exp.detail,
+    })),
+  ];
+  return (
+    <section id="timeline" className="relative scroll-mt-28 py-[clamp(40px,6vw,90px)] pb-[clamp(60px,8vw,110px)] text-white">
+      <div className="mx-auto mb-[clamp(24px,5vw,56px)] px-[clamp(16px,4vw,40px)] text-center">
+        <Reveal>
+          <p className="section-kicker">02. Journey</p>
+          <h2 className="section-heading mt-3.5">Journey</h2>
+          <p className="mx-auto mt-4 max-w-[62ch] text-[clamp(0.9rem,1.2vw,0.95rem)] leading-[1.7] text-white/60">
+            Education and experience, in order.
+          </p>
+        </Reveal>
+      </div>
+      <div ref={timelineRef} className="relative mx-auto w-full px-[clamp(14px,4vw,60px)]">
+        <div className="pointer-events-none absolute bottom-0 left-1/2 top-0 w-[2px] -translate-x-1/2 bg-[rgba(255,255,255,0.08)] max-[900px]:hidden" aria-hidden="true">
+          <motion.div style={{ scaleY: fillScaleY }} className="h-full w-full origin-top bg-gradient-to-b from-[#c46b1f] to-[rgba(196,107,31,0.15)]" />
+        </div>
+        {entries.map((entry, i) => (
+          <div key={entry.title} className="relative flex items-center py-[clamp(26px,4vw,44px)]">
+            <div className="flex min-w-0 flex-1 justify-center max-[900px]:hidden min-[901px]:justify-end min-[901px]:pr-[clamp(18px,4vw,52px)]">
+              {i % 2 === 0 ? <JourneyCard entry={entry} /> : null}
+            </div>
+            <div className="relative w-[clamp(56px,6vw,80px)] shrink-0 max-[900px]:hidden" aria-hidden="true">
+              <span className="absolute left-1/2 top-1/2 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-[#050505e6] shadow-[0_0_0_6px_rgba(196,107,31,0.08)]" />
+            </div>
+            <div className="flex min-w-0 flex-1 justify-center max-[900px]:hidden min-[901px]:justify-start min-[901px]:pl-[clamp(18px,4vw,52px)]">
+              {i % 2 === 1 ? <JourneyCard entry={entry} /> : null}
+            </div>
+            <div className="hidden w-full justify-center max-[900px]:flex">
+              <JourneyCard entry={entry} />
             </div>
           </div>
-        </Reveal>
+        ))}
       </div>
     </section>
   );
 }
 
 export function Skills() {
+  const deckRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: deckRef, offset: ["start start", "end end"] });
+  const groups = portfolio.skillGroups;
+  const totalGroups = groups.length;
   let counter = 0;
+  const cardsByGroup = groups.map((group) =>
+    group.skills.map((skill) => {
+      counter += 1;
+      const n = counter < 10 ? String(counter).padStart(2, "0") : `0${counter}`;
+      return { skill, n };
+    }),
+  );
+  const stars = Array.from({ length: 120 }, (_, i) => ({
+    left: `${(i * 37 + 13) % 100}%`,
+    top: `${(i * 53 + 7) % 100}%`,
+  }));
   return (
-    <section id="skills" className="relative min-h-screen scroll-mt-28 pb-20 pt-[100px]">
-      <div className="mx-auto w-[min(92vw,1110px)] px-5 text-center">
-        <Reveal>
-          <p className="section-kicker">03. Skills</p>
-          <h2 className="section-heading mt-2.5">Technical Expertise</h2>
-          <p className="mx-auto mt-2.5 max-w-[60ch] text-[clamp(0.85rem,1.5vw,0.95rem)] font-light leading-[1.5] text-white/60">
-            Technologies I use to build full-stack and AI-integrated applications.
-          </p>
-        </Reveal>
-      </div>
-      <div className="mx-auto mt-10 w-[min(92vw,1110px)] space-y-16 px-5">
-        {portfolio.skillGroups.map((group) => (
-          <div key={group.domain} className="relative overflow-x-clip">
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[rgba(196,107,31,0.12)] blur-[100px]"
-              aria-hidden="true"
-            />
-            <DepthWord>{group.domain}</DepthWord>
-            <div className="relative mt-6 grid grid-cols-1 gap-6 md:grid-cols-2" style={{ perspective: 1200 }}>
-              {group.skills.map((skill, skillIndex) => {
-                counter += 1;
-                const n = counter < 10 ? String(counter).padStart(2, "0") : `0${counter}`;
-                return (
-                  <SkillDepthCard key={skill} skill={skill} domain={group.domain} n={n} fan={skillIndex % 2 === 0 ? -12 : 12} />
-                );
-              })}
-            </div>
+    <section id="skills" className="relative scroll-mt-28">
+      <div ref={deckRef} style={{ height: `${totalGroups * 100}vh` }} className="relative">
+        <div className="sticky top-0 flex h-screen flex-col overflow-hidden pt-[100px]">
+          <div className="relative z-10 mx-auto w-[min(92vw,1110px)] shrink-0 px-5 text-center">
+            <p className="section-kicker">03. Skills</p>
+            <h2 className="section-heading mt-2.5">Technical Expertise</h2>
+            <p className="mx-auto mt-2.5 max-w-[60ch] text-[clamp(0.85rem,1.5vw,0.95rem)] font-light leading-[1.5] text-white/60">
+              Technologies I use to build full-stack and AI-integrated applications.
+            </p>
           </div>
-        ))}
+          <div className="relative mt-5 flex-1 overflow-hidden" style={{ perspective: 700 }}>
+            {stars.map((s, i) => (
+              <span key={i} className="absolute h-[2px] w-[2px] rounded-full bg-white opacity-50" style={{ left: s.left, top: s.top }} aria-hidden="true" />
+            ))}
+            {groups.map((group, gi) => (
+              <DeckWord key={group.domain} word={group.domain} progress={scrollYProgress} groupIndex={gi} totalGroups={totalGroups} />
+            ))}
+            {groups.map((group, gi) =>
+              cardsByGroup[gi].map((card, ci) => (
+                <DeckCard
+                  key={card.skill}
+                  skill={card.skill}
+                  domain={group.domain}
+                  n={card.n}
+                  progress={scrollYProgress}
+                  groupIndex={gi}
+                  cardIndex={ci}
+                  groupSize={group.skills.length}
+                  totalGroups={totalGroups}
+                />
+              )),
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

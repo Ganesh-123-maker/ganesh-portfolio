@@ -44,6 +44,7 @@ export const portfolio = {
   // Nav order and labels follow the reference navbar.
   nav: [
     { label: "About Me", href: "#about" },
+    { label: "Journey", href: "#timeline" },
     { label: "Skills", href: "#skills" },
     { label: "Projects", href: "#projects" },
     { label: "Contact", href: "#contact" },
