@@ -68,66 +68,76 @@ function JourneyCard({ entry, dir }: { entry: JourneyEntry; dir: number }) {
   );
 }
 
-// Skills deck: one card's state from global deck scroll progress.
-// Before its group segment it sits deep and invisible; during the
-// segment it fans into its slot; at the segment end it sinks back.
+// Skills deck: true one-at-a-time cycle, from the fresh reference study.
+// Flat card index f (0..21 across all groups). Front position = v * total.
+// depth d = f - front:
+//   d in [-1, 0): card just left the front, sliding off large and fading to the side.
+//   d in [0, 5]: stack behind the front card, smaller, more tilted, dimmer, stepping
+//     forward as the front advances; the front card pops (scale bulge) mid-approach.
+//   d > 5: far-future cards, small and dim, peeking behind the stack.
+//   d < -1: already shown, gone.
+// Group boundaries overlap because the next group's first card is already in the
+// stack (small, behind) while the previous group's last card is still front.
 function deckCardValue(
   v: number,
-  groupIndex: number,
-  cardIndex: number,
-  groupSize: number,
-  totalGroups: number,
+  flatIndex: number,
+  totalCards: number,
   prop: "opacity" | "scale" | "x" | "y" | "rotateX" | "rotateY" | "z",
 ): number {
-  const seg = 1 / totalGroups;
-  const start = groupIndex * seg;
-  const local = (v - start) / seg;
-  const centre = (groupSize - 1) / 2;
-  const fanX = (cardIndex - centre) * 45;
-  const fanRot = (cardIndex - centre) * 8;
-  if (local < 0) {
-    return { opacity: 0, scale: 0.7, x: fanX * 0.5, y: 100, rotateX: 30, rotateY: fanRot, z: -200 }[prop];
+  const front = v * totalCards;
+  const d = flatIndex - front;
+  const side = flatIndex % 2 === 0 ? -1 : 1;
+  // Entry: deck grows in from small/low during the first 3% of scroll.
+  const entry = Math.min(1, v / 0.03);
+  const entryScale = 0.75 + 0.25 * entry;
+  const entryY = 80 * (1 - entry);
+  let opacity: number, scale: number, x: number, y: number, rotateX: number, rotateY: number, z: number;
+  if (d < -1) {
+    opacity = 0; scale = 1.15; x = side * 140; y = 180; rotateX = -10; rotateY = side * 25; z = -150;
+  } else if (d < 0) {
+    // Exiting: p goes 1 (just front) -> 0 (gone) as d goes 0 -> -1.
+    const q = d + 1;
+    opacity = q; scale = 1.15 - 0.15 * q; x = side * 140 * (1 - q); y = 180 * (1 - q);
+    rotateX = -10 * (1 - q); rotateY = side * 25 * (1 - q); z = -150 * (1 - q);
+  } else if (d <= 5) {
+    // Stack: front is large/upright, deeper cards smaller/tilted/dimmer.
+    const pop = d < 1 ? 0.08 * Math.sin((1 - d) * Math.PI) : 0;
+    opacity = 1 - 0.14 * d;
+    scale = (1 - 0.12 * d + pop) * entryScale;
+    x = -18 * d;
+    y = 18 * d + entryY;
+    rotateX = 12 * d;
+    rotateY = 6 * d;
+    z = -120 * d + 50 * pop;
+  } else {
+    opacity = 0.22; scale = 0.6 * entryScale; x = 0; y = 80 + entryY;
+    rotateX = 30; rotateY = 0; z = -300;
   }
-  if (local > 1) {
-    return { opacity: 0, scale: 0.8, x: fanX, y: -80, rotateX: -15, rotateY: fanRot, z: -150 }[prop];
+  if (d >= 0 && d <= 5) {
+    // Front card itself should not carry the entry Y offset once entered.
+    if (d === 0) y = entryY;
   }
-  const stagger = groupSize > 1 ? (cardIndex / (groupSize - 1)) * 0.3 : 0;
-  const appear = Math.min(1, Math.max(0, (local - stagger) / 0.5));
-  const exit = Math.min(1, Math.max(0, (local - 0.85) / 0.15));
-  const slide = cardIndex % 2 === 0 ? -160 : 160;
-  const pop = 0.08 * Math.sin(appear * Math.PI);
-  const vals = {
-    opacity: appear * (1 - exit),
-    scale: 0.7 + 0.3 * appear + pop - 0.2 * exit,
-    x: fanX + slide * (1 - appear),
-    y: 80 * (1 - appear) - 40 * exit,
-    rotateX: 25 * (1 - appear) - 10 * exit,
-    rotateY: fanRot * (0.5 + 0.5 * appear) + (cardIndex % 2 === 0 ? -25 : 25) * (1 - appear),
-    z: -150 * (1 - appear) + 50 * Math.sin(appear * Math.PI) - 100 * exit,
-  };
-  return vals[prop];
+  return { opacity, scale, x, y, rotateX, rotateY, z }[prop];
 }
 
-function DeckWord({ word, progress, groupIndex, totalGroups }: { word: string; progress: MotionValue<number>; groupIndex: number; totalGroups: number }) {
+function DeckWord({ word, progress, startFlat, endFlat, totalCards }: { word: string; progress: MotionValue<number>; startFlat: number; endFlat: number; totalCards: number }) {
   const opacity = useTransform(progress, (v: number) => {
-    const seg = 1 / totalGroups;
-    const local = (v - groupIndex * seg) / seg;
-    if (local < 0 || local > 1) return 0;
-    const edge = Math.min(1, Math.min(local / 0.1, (1 - local) / 0.1));
-    return 0.9 * edge;
+    const front = v * totalCards;
+    if (front < startFlat - 1 || front > endFlat + 1) return 0;
+    const fadeIn = Math.min(1, front - (startFlat - 1));
+    const fadeOut = Math.min(1, endFlat + 1 - front);
+    return 0.9 * Math.min(fadeIn, fadeOut);
   });
   const scale = useTransform(progress, (v: number) => {
-    const seg = 1 / totalGroups;
-    const local = (v - groupIndex * seg) / seg;
-    if (local < 0 || local > 1) return 0.95;
-    return 0.95 + 0.05 * Math.min(1, local / 0.3);
+    const front = v * totalCards;
+    if (front < startFlat - 1 || front > endFlat + 1) return 0.95;
+    return 0.95 + 0.05 * Math.min(1, (front - startFlat) / 2);
   });
   const x = useTransform(progress, (v: number) => {
-    const seg = 1 / totalGroups;
-    const local = (v - groupIndex * seg) / seg;
-    if (local < 0) return -120;
-    if (local > 1) return 120;
-    return -120 * (1 - Math.min(1, local / 0.3));
+    const front = v * totalCards;
+    if (front < startFlat) return -120;
+    if (front > endFlat) return 120;
+    return -120 * (1 - Math.min(1, (front - startFlat) / 2));
   });
   return (
     <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2" aria-hidden="true">
@@ -138,14 +148,14 @@ function DeckWord({ word, progress, groupIndex, totalGroups }: { word: string; p
   );
 }
 
-function DeckCard({ skill, domain, n, progress, groupIndex, cardIndex, groupSize, totalGroups }: { skill: string; domain: string; n: string; progress: MotionValue<number>; groupIndex: number; cardIndex: number; groupSize: number; totalGroups: number }) {
-  const opacity = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "opacity"));
-  const scale = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "scale"));
-  const x = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "x"));
-  const y = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "y"));
-  const rotateX = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "rotateX"));
-  const rotateY = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "rotateY"));
-  const z = useTransform(progress, (v: number) => deckCardValue(v, groupIndex, cardIndex, groupSize, totalGroups, "z"));
+function DeckCard({ skill, domain, n, progress, flatIndex, totalCards }: { skill: string; domain: string; n: string; progress: MotionValue<number>; flatIndex: number; totalCards: number }) {
+  const opacity = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "opacity"));
+  const scale = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "scale"));
+  const x = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "x"));
+  const y = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "y"));
+  const rotateX = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "rotateX"));
+  const rotateY = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "rotateY"));
+  const z = useTransform(progress, (v: number) => deckCardValue(v, flatIndex, totalCards, "z"));
   return (
     <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
       <motion.article
@@ -503,13 +513,17 @@ export function Skills() {
   const groups = portfolio.skillGroups;
   const totalGroups = groups.length;
   let counter = 0;
-  const cardsByGroup = groups.map((group) =>
-    group.skills.map((skill) => {
+  const cardsByGroup = groups.map((group) => {
+    const startFlat = counter;
+    const cards = group.skills.map((skill) => {
+      const flatIndex = counter;
       counter += 1;
       const n = String(counter).padStart(2, "0");
-      return { skill, n };
-    }),
-  );
+      return { skill, n, flatIndex };
+    });
+    return { cards, startFlat, endFlat: counter };
+  });
+  const totalCards = counter;
   const stars = Array.from({ length: 120 }, (_, i) => ({
     left: `${(i * 37 + 13) % 100}%`,
     top: `${(i * 53 + 7) % 100}%`,
@@ -530,20 +544,18 @@ export function Skills() {
               <span key={i} className="absolute h-[2px] w-[2px] rounded-full bg-white opacity-50" style={{ left: s.left, top: s.top }} aria-hidden="true" />
             ))}
             {groups.map((group, gi) => (
-              <DeckWord key={group.domain} word={group.domain} progress={scrollYProgress} groupIndex={gi} totalGroups={totalGroups} />
+              <DeckWord key={group.domain} word={group.domain} progress={scrollYProgress} startFlat={cardsByGroup[gi].startFlat} endFlat={cardsByGroup[gi].endFlat} totalCards={totalCards} />
             ))}
             {groups.map((group, gi) =>
-              cardsByGroup[gi].map((card, ci) => (
+              cardsByGroup[gi].cards.map((card) => (
                 <DeckCard
                   key={card.skill}
                   skill={card.skill}
                   domain={group.domain}
                   n={card.n}
                   progress={scrollYProgress}
-                  groupIndex={gi}
-                  cardIndex={ci}
-                  groupSize={group.skills.length}
-                  totalGroups={totalGroups}
+                  flatIndex={card.flatIndex}
+                  totalCards={totalCards}
                 />
               )),
             )}
