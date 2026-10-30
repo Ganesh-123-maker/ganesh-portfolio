@@ -24,8 +24,8 @@ function Reveal({ children, delay = 0, className }: { children: ReactNode; delay
 // About word-by-word reveal: each word brightens as it scrolls
 // into focus, dim below until reached. Original Ganesh text only.
 function AboutWord({ word, progress, index, total }: { word: string; progress: MotionValue<number>; index: number; total: number }) {
-  const opacity = useTransform(progress, [index / total, (index + 1) / total], [0.25, 1]);
-  const y = useTransform(progress, [index / total, (index + 1) / total], [12, 0]);
+  const opacity = useTransform(progress, [Math.max(0, index / total - 0.12), Math.min(1, (index + 1) / total + 0.12)], [0.3, 1]);
+  const y = useTransform(progress, [Math.max(0, index / total - 0.12), Math.min(1, (index + 1) / total + 0.12)], [8, 0]);
   return (
     <motion.span style={{ opacity, y }} className="mr-[0.25em] inline-block">
       {word}
@@ -51,11 +51,11 @@ function AboutParagraph({ text }: { text: string }) {
 type JourneyEntry = { period: string; title: string; org: string; detail: string };
 function JourneyCard({ entry, dir }: { entry: JourneyEntry; dir: number }) {
   const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
-  const filter = useTransform(scrollYProgress, [0, 1], ["blur(8px)", "blur(0px)"]);
-  const x = useTransform(scrollYProgress, [0, 1], [dir * 60, 0]);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.4, 1, 0.5]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [40, 0, -20]);
+  const filter = useTransform(scrollYProgress, [0, 0.5, 1], ["blur(8px)", "blur(0px)", "blur(8px)"]);
+  const x = useTransform(scrollYProgress, [0, 0.5, 1], [dir * 60, 0, 0]);
   return (
     <motion.article ref={ref} style={{ opacity, y, x, filter }} className="w-full max-w-[560px] text-center will-change-transform">
       <p className="mb-3 font-mono text-[11px] tracking-[0.38em] text-accent">{entry.period}</p>
@@ -181,19 +181,16 @@ type ProjectItem = {
 function ProjectDepthCard({ project, index }: { project: ProjectItem; index: number }) {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
-  const scale = useTransform(scrollYProgress, [0, 1], [0.88, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 1], [0.4, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [50, 0]);
-  const rotateX = useTransform(scrollYProgress, [0, 1], [20, 0]);
-  const x = useTransform(scrollYProgress, [0, 1], [index % 2 === 0 ? -80 : 80, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
   return (
     <motion.article
       ref={ref}
-      style={{ scale, opacity, x, y, rotateX, transformPerspective: 1200, transformStyle: "preserve-3d" }}
-      className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[#0a0a0a59] shadow-[0_24px_70px_#0000008c] backdrop-blur-[10px] transition-all duration-300 hover:-translate-y-2 hover:border-[#c46b1f59] hover:shadow-[0_26px_90px_#000000b3,0_0_0_1px_#c46b1f2e,0_0_38px_#c46b1f2e]"
+      style={{ opacity, y }}
+      className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-[rgba(255,255,255,0.08)] bg-[#0a0a0a59] shadow-[0_24px_70px_#0000008c] backdrop-blur-[10px] transition-all duration-300 hover:border-[#c46b1f59] hover:shadow-[0_0_38px_#c46b1f2e]"
     >
       <div className="relative h-[clamp(200px,22vw,260px)] w-full overflow-hidden max-[480px]:h-[190px]" aria-hidden="true">
-        <div className="flex h-full w-full items-center justify-center bg-surface transition-all duration-300 group-hover:scale-[1.06]">
+        <div className="flex h-full w-full items-center justify-center bg-surface">
           <span className="font-mono text-2xl font-bold text-white/30">
             {project.title
               .split(" ")
@@ -356,8 +353,9 @@ export function Navbar() {
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const heroScale = useTransform(heroProgress, [0, 1], [1, 1.08]);
-  const heroOpacity = useTransform(heroProgress, [0, 1], [1, 0.6]);
+  const heroOpacity = useTransform(heroProgress, [0, 1], [1, 0.15]);
+  const heroNameScale = useTransform(heroProgress, [0, 1], [1, 2.4]);
+  const heroNameOpacity = useTransform(heroProgress, [0, 0.7, 1], [1, 1, 0]);
   return (
     <section ref={heroRef} id="home" className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -367,14 +365,14 @@ export function Hero() {
         ))}
       </div>
       <div className="relative z-[2] mx-auto flex w-[80%] flex-col items-center justify-center pb-16 pt-24 text-center">
-        <motion.div style={{ scale: heroScale, opacity: heroOpacity }} className="w-full">
+        <motion.div style={{ opacity: heroOpacity }} className="w-full">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="w-full"
         >
-          <h1 className="hero-title">{portfolio.name}</h1>
+          <motion.h1 style={{ scale: heroNameScale, opacity: heroNameOpacity }} className="hero-title">{portfolio.name}</motion.h1>
           <div className="mx-auto mt-[clamp(1rem,3vw,2rem)] flex flex-wrap items-center justify-center gap-[clamp(0.6rem,2vw,1.2rem)]">
             <span className="h-px w-[clamp(36px,10vw,80px)] bg-[#c46b1f] opacity-90" aria-hidden="true" />
             <span className="hero-tagline">{portfolio.roleLine}</span>
@@ -742,7 +740,7 @@ export function ContactFooter() {
           </Reveal>
         </div>
       </section>
-      <footer className="border-t border-[rgba(255,255,255,0.08)] pb-8 pt-[22px]">
+      <footer className="border-t border-[rgba(255,255,255,0.08)] pb-[clamp(48px,10vw,120px)] pt-[22px]">
         <div className="mx-auto flex w-[min(1200px,92vw)] flex-col items-center justify-between gap-4 text-xs text-white/35 sm:flex-row">
           <p>© 2026 Ganesh. All rights reserved.</p>
           <div className="flex gap-[18px]">
